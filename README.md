@@ -1,18 +1,15 @@
 # ReTreVal
 
-ReTreVal is a reasoning framework for large language models that combines
-tree-style exploration, self-refinement, critique-based scoring, and reflexion
-memory for multi-step reasoning tasks.
+ReTreVal is a compact reasoning agent for large language models. The public
+interface focuses on one agent and one Math500 evaluation path.
 
 This repository is open-sourced by QPIAI and maintained by Abhishek HS.
 
 ## Features
 
-- Adaptive reasoning tree exploration
-- Iterative self-refinement of candidate solutions
-- Local and critic-based scoring
-- Reflexion memory for reusable insights and failure patterns
-- Baselines for ReAct, Reflexion, Self-Refine, and Tree-of-Thoughts
+- LangGraph-based draft, refine, and answer-extraction flow
+- Simple CLI for solving one problem
+- Math500 evaluator for the bundled CSV
 - Provider support for Gemini, OpenAI, Ollama, and vLLM-compatible endpoints
 
 ## Repository Layout
@@ -22,8 +19,6 @@ This repository is open-sourced by QPIAI and maintained by Abhishek HS.
 +-- src/
 |   +-- agents/       # Reasoning agents, benchmark runners, and prompts
 |   +-- clients/      # LLM provider clients
-|   +-- tools/        # Planning, scoring, search, synthesis, and computation tools
-|   +-- utils/        # Memory and KV-cache utilities
 +-- data/             # Example benchmark inputs
 +-- requirements.txt
 +-- .env.example
@@ -67,22 +62,24 @@ VLLM_MODEL=Qwen/Qwen2.5-7B-Instruct
 
 ## Usage
 
-Run a Math500 benchmark with a vLLM-compatible endpoint:
+Run the agent on one problem:
 
 ```bash
-python run_math500_vllm.py
+python -m src.agents.agent_main \
+  --provider gemini \
+  --prompt "How many positive whole-number divisors does 196 have?"
 ```
 
-Run the KV-cache variant:
+Evaluate the first 5 Math500 examples:
 
 ```bash
-python run_math500_vllm_kvcache_10.py
+python -m src.agents.math500_eval --provider gemini --limit 5
 ```
 
-Run an agent script directly:
+The compatibility wrappers call the same evaluator:
 
 ```bash
-python -m src.agents.agent_main --prompt "Solve a multi-step reasoning problem" --iters 5
+python run_math500_vllm.py --provider gemini --limit 5
 ```
 
 Analyze HumanEval result CSVs:
