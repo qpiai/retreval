@@ -3,7 +3,6 @@
 <div align="center">
 
 ### 📄 [ReTreVal: Reasoning Tree with Validation — arXiv 2601.02880](https://arxiv.org/pdf/2601.02880)
-*Abhishek HS · Pavan C Shekar · Arpit Jain · Ashwanth Krishnan*
 
 </div>
 
@@ -11,8 +10,8 @@
 
 **A general LLM reasoning framework that gets smarter with every run.**
 
-[![License: Apache 2.0](https://img.shields.io/badge/License-Apache_2.0-blue.svg?style=flat-square)](LICENSE)
 [![arXiv](https://img.shields.io/badge/arXiv-2601.02880-b31b1b.svg?style=flat-square)](https://arxiv.org/pdf/2601.02880)
+[![License: Apache 2.0](https://img.shields.io/badge/License-Apache_2.0-blue.svg?style=flat-square)](LICENSE)
 [![LangGraph](https://img.shields.io/badge/Built%20with-LangGraph-7c3aed?style=flat-square)](https://langchain-ai.github.io/langgraph/)
 [![Python 3.9+](https://img.shields.io/badge/python-3.9+-3776AB.svg?style=flat-square&logo=python&logoColor=white)](https://www.python.org/)
 
