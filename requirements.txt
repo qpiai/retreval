@@ -1,0 +1,34 @@
+# Tree-of-Thoughts + Self-Refine Requirements
+
+# Core dependencies
+google-generativeai>=0.3.0
+python-dotenv>=1.0.0
+
+# Agent framework
+langgraph>=0.2.39
+langchain-core>=0.2.27
+
+# OpenAI backend (optional, required if LLM_PROVIDER=openai)
+openai>=1.51.0
+
+# Ollama backend (for local LLM inference)
+requests>=2.31.0
+
+# Linear programming solver (for LP tool)
+pulp>=2.8.0
+
+# Symbolic mathematics (for algebra, calculus, equation solving)
+sympy>=1.12
+
+# Scientific computing (optional but recommended for advanced math)
+numpy>=1.24.0
+scipy>=1.10.0
+pandas>=2.0.0
+
+# Web search capabilities (optional but recommended)
+# For Tavily search (preferred): tavily-python>=0.3.0
+# For DuckDuckGo fallback: duckduckgo-search>=4.0.0
+
+# Optional: For advanced features
+# asyncio (built-in for Python 3.7+)
+# json (built-in)
