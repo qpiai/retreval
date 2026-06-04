@@ -4,11 +4,11 @@
 
 **Watch an LLM grow a validated reasoning tree, refine each node with tools, and remember what works — live.**
 
-[![arXiv](https://img.shields.io/badge/arXiv-2601.02880-b31b1b.svg?style=flat-square)](https://arxiv.org/pdf/2601.02880)
-[![License: Apache 2.0](https://img.shields.io/badge/License-Apache_2.0-blue.svg?style=flat-square)](LICENSE)
-[![LangGraph](https://img.shields.io/badge/Built%20with-LangGraph-7c3aed?style=flat-square)](https://langchain-ai.github.io/langgraph/)
-[![Next.js UI](https://img.shields.io/badge/UI-Next.js-000?style=flat-square&logo=next.js)](web/)
-[![Python 3.9+](https://img.shields.io/badge/python-3.9+-3776AB.svg?style=flat-square&logo=python&logoColor=white)](https://www.python.org/)
+[![arXiv](https://img.shields.io/badge/arXiv-2601.02880-b31b1b.svg?style=flat)](https://arxiv.org/pdf/2601.02880)
+[![License: Apache 2.0](https://img.shields.io/badge/License-Apache_2.0-blue.svg?style=flat)](LICENSE)
+[![LangGraph](https://img.shields.io/badge/Built%20with-LangGraph-7c3aed?style=flat)](https://langchain-ai.github.io/langgraph/)
+[![Next.js UI](https://img.shields.io/badge/UI-Next.js-000?style=flat&logo=next.js)](web/)
+[![Python 3.9+](https://img.shields.io/badge/python-3.9+-3776AB.svg?style=flat&logo=python&logoColor=white)](https://www.python.org/)
 
 [Demo](#-demo) · [Why](#-why-retreval) · [How it works](#-how-it-works) · [Web UI](#-web-ui) · [Quickstart](#-quickstart) · [Results](#-results)
 
