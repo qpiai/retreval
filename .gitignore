@@ -41,7 +41,8 @@ reasoning_result.json
 *.log
 logs/
 results/
-reflexion_memory.md
+memory.md
+*.md.tmp
 
 # OS
 .DS_Store

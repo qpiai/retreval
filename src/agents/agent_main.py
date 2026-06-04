@@ -21,6 +21,9 @@ def main() -> None:
     parser.add_argument("--model", default=None, help="Provider model name.")
     parser.add_argument("--verbose", action="store_true", help="Print intermediate model outputs.")
     parser.add_argument("--save", type=Path, default=None, help="Optional JSON output path.")
+    parser.add_argument("--memory-file", default=None, help="Persistent memory file (default: <repo>/memory.md or $MEMORY_FILE).")
+    parser.add_argument("--no-memory", action="store_true", help="Disable persistent memory.")
+    parser.add_argument("--oracle", action="store_true", help="Show the reference answer to the agent during solving (off by default).")
     args = parser.parse_args()
 
     result = run_agent(
@@ -31,6 +34,9 @@ def main() -> None:
         verbose=args.verbose,
         provider=args.provider,
         model=args.model,
+        memory_file=args.memory_file,
+        use_memory=not args.no_memory,
+        oracle=args.oracle,
     )
 
     print(result.get("final_output", ""))

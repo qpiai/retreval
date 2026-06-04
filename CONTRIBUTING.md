@@ -9,7 +9,7 @@ ReTreVal is built by researchers and engineers who believe reasoning agents shou
 ## 💡 Why contribute?
 
 - 🧠 **Real research impact** — ReTreVal is an active research framework cited in [arXiv 2601.02880](https://arxiv.org/pdf/2601.02880). Your work can directly influence future experiments
-- 🔌 **Broad task coverage** — the agent is task-agnostic; adding GPQA, MMLU, or ScienceWorld evaluators is one of the most impactful things you can do
+- 🔌 **Broad task coverage** — the agent is task-agnostic; adding new task evaluators (e.g. GPQA, ARC) is one of the most impactful things you can do
 - 🤖 **Edge-of-field work** — reflexion memory, tree-structured reasoning, KV cache optimization, multi-backend inference
 - 👥 **Responsive maintainers** — we review PRs promptly and are happy to help first-timers
 
@@ -22,7 +22,7 @@ If you're new, any of these are a great start:
 - 🐛 Fix a bug from [Issues](../../issues) — look for `good first issue`
 - 📝 Improve the docs — a missing step, a confusing example, a typo
 - 🧪 Add a test for an untested code path
-- 🔌 Add a new task evaluator (GPQA, MMLU, ARC, ScienceWorld)
+- 🔌 Add a new task evaluator (GPQA, ARC)
 - 🧩 Add a new LLM backend client
 
 Tiny PRs are welcome. A one-line doc fix counts.

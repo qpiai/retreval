@@ -49,42 +49,38 @@ Most LLM reasoning frameworks are stateless — every problem starts from scratc
 | ReAct | 6.63 | 7.0 | 51.6 % | 3 |
 | **ReTreVal** | **6.92** | **8.0** | **58.0 %** | **0** |
 
-Scores are assigned by an independent LLM evaluator per problem. ReTreVal is the only method with zero failures across 500 problems. Full results including GSM8K, GPQA, MMLU, ScienceWorld, and Creative Writing are in the [paper](https://arxiv.org/pdf/2601.02880).
+Scores are assigned by an independent LLM evaluator per problem. ReTreVal is the only method with zero failures across 500 problems. Full results are in the [paper](https://arxiv.org/pdf/2601.02880).
 
 ---
 
 ## 🧠 Architecture
 
-ReTreVal is a compiled [LangGraph](https://langchain-ai.github.io/langgraph/) state graph built around three ideas: **tree exploration** (multiple candidate paths per problem), **dual scoring** (self-eval + external critic combined as `0.6 × local + 0.4 × cross`), and **reflexion memory** (a persistent buffer that feeds past successes and failures back into future attempts).
+ReTreVal is a compiled [LangGraph](https://langchain-ai.github.io/langgraph/) state graph that, for each problem, grows an **adaptive reasoning tree** whose depth/branching scale with estimated complexity. Each node self-improves through a **tool-augmented ReAct loop** (calculator, Python, equation solver, search…), is scored by **dual validation** (`0.6 × local self-eval + 0.4 × external critic`), and on validation failure the agent performs **typed-failure backtracking** to an unexplored sibling. Hard problems are **decomposed** into sub-tasks. A persistent **memory** feeds past successes and failures into every new attempt.
 
 <div align="center">
 
 ```mermaid
-%%{init: {'theme':'base', 'themeVariables': {'fontSize':'20px','fontFamily':'Inter, Helvetica, Arial, sans-serif','lineColor':'#64748b'}}}%%
+%%{init: {'theme':'base', 'themeVariables': {'fontSize':'18px','fontFamily':'Inter, Helvetica, Arial, sans-serif','lineColor':'#64748b'}}}%%
 graph LR
-    T["📋 Any Task"] --> AG["🤖 ReTreVal\nAgent"]
+    T["📋 Problem"] --> P["🗺️ Plan\n(complexity → tree size)"]
+    MEM["🧠 Memory\ninsights · failures"] -->|learned context| P
 
-    MEM["🧠 Memory\ninsights · failures"] -->|learned context| AG
+    P --> X["🌳 Expand tree"]
+    X --> RR["🛠️ Tool-augmented\nReAct refine"]
+    RR --> C["🔍 Critique"]
+    C --> SC["📊 Dual score"]
+    SC --> MEM
+    SC -->|loop / decompose| X
+    SC --> SY["🧩 Synthesize"]
+    SY --> V["✅ Validate"]
+    V -->|fail| BT["🔙 Backtrack"]
+    BT --> RR
+    V -->|ok| A["📦 Answer"]
 
-    GEM["☁️ Gemini"] --> AG
-    OAI["🤖 OpenAI"] --> AG
-    OLL["🖥️ Ollama"] --> AG
-    VLL["⚡ vLLM"] --> AG
-
-    AG --> D["✍️ Draft"]
-    D --> R["🔄 Refine ×N"]
-    R --> F["🏁 Finalize"]
-    F --> A["📦 Answer"]
-
-    A --> MEM
-    A --> E["📊 Evaluate"]
-    E --> S["📝 Results"]
-
-    classDef pink fill:#E84393,stroke:#E84393,color:#ffffff,stroke-width:3px,font-size:20px
-    classDef blue fill:#1e3a8a,stroke:#1e3a8a,color:#ffffff,stroke-width:3px,font-size:20px
-
-    class AG,D,R,F,MEM,E pink
-    class T,A,S,GEM,OAI,OLL,VLL blue
+    classDef pink fill:#E84393,stroke:#E84393,color:#ffffff,stroke-width:3px
+    classDef blue fill:#1e3a8a,stroke:#1e3a8a,color:#ffffff,stroke-width:3px
+    class P,X,RR,C,SC,SY,V,BT,MEM pink
+    class T,A blue
 ```
 
 </div>
@@ -93,19 +89,22 @@ graph LR
 
 | Step | What happens |
 |---|---|
-| **Memory inject** | Past insights and failure modes from the reflexion buffer are prepended to the agent's context before drafting |
-| **Draft** | The LLM reasons through the problem step-by-step and produces an initial candidate answer |
-| **Refine ×N** | A critique pass checks the draft for errors and rewrites it; runs up to `--iterations` times |
-| **Score** | Each candidate is scored: `0.6 × self-eval + 0.4 × external-LLM-critic`; the best scoring path advances |
-| **Finalize** | `extract_answer()` pulls the final answer using layered parsing: `\boxed{...}` → natural-language patterns → last non-empty line |
-| **Memory update** | The outcome — success or failure, what worked, what didn't — is written back to the reflexion buffer for future problems |
-| **Evaluate** | The evaluator normalizes and compares predicted vs. expected answers; results are written to JSONL |
+| **Plan** | Estimate complexity (1–5) and size the tree (depth/branching) adaptively; inject relevant memory. |
+| **Expand** | Generate K candidate reasoning branches from the current node. |
+| **Tool-augmented refine** | Each node runs a ReAct loop where the LLM calls tools (calculator, equation solver, `python_exec`, web/Wikipedia/arXiv) to verify and improve its reasoning. |
+| **Critique + dual score** | Pairwise cross-critique plus local self-eval, combined as `0.6 × local + 0.4 × cross`; the best branch advances. |
+| **Memory update** | Insights and failure patterns are written back (de-duplicated, confidence-weighted) for future problems. |
+| **Decompose** | Hard problems (complexity ≥ 4, low score) are split into dependency-ordered sub-tasks, solved, and aggregated. |
+| **Synthesize → Validate** | Produce the final answer and validate it. By default the agent solves without seeing the reference answer, so backtracking triggers on its own score; pass `--oracle` to let it use the reference answer (research only). |
+| **Backtrack** | On validation failure, navigate to an unexplored sibling branch with structured failure context injected. |
 
 ### How the memory works
 
-The reflexion buffer is a pair of FIFO queues — up to 10 **insights** (patterns that produced correct answers) and up to 10 **failure modes** (what went wrong and why). After every problem the buffer is updated and serialized to disk. On the next problem, both queues are injected as context: *"In past problems like this, the following patterns worked / failed..."*
+The memory (`src/utils/memory.py`, class `Memory`) is a persistent buffer of structured entries in three categories — **insights** and **successes** (patterns that produced correct answers) and **failures** (what went wrong and why). Each entry carries a confidence score, and new entries are de-duplicated against existing ones by keyword (Jaccard) overlap rather than stored blindly. After every problem the outcome is written back, confidence is nudged up on success / down on failure, and the buffer is serialized to a human-readable `memory.md` (with an embedded JSON block for exact reload).
 
-This means performance on hard domains measurably improves over multi-hundred-problem evaluation runs without any weight updates.
+On the next problem the **most relevant** entries — ranked by keyword overlap with the current question × confidence — are injected into both the draft and refine prompts: *"Relevant lessons from previous problems (use the insights, avoid the failures)..."* The buffer persists across runs via that shared file, so a fresh batch picks up everything the previous batch learned, and performance on hard domains measurably improves over multi-hundred-problem runs without any weight updates.
+
+Memory is on by default. Point it at a specific file with `--memory-file <path>` (or the `MEMORY_FILE` env var); disable it entirely with `--no-memory`.
 
 ---
 
@@ -118,8 +117,6 @@ The OSS release ships with a **MATH-500 evaluator** as the reference implementat
 | **MATH-500** | Competition math | Free-form, LaTeX answer |
 | **GSM8K** | Grade-school math | Numerical answer |
 | **GPQA** | Graduate-level science QA | Multiple-choice |
-| **MMLU** | 57-subject knowledge | Multiple-choice |
-| **ScienceWorld** | Interactive science env | Action sequence |
 | **Creative Writing** | Narrative generation | Open-ended text |
 
 Adding a new task requires two things: a **loader** (yields `(question, expected_answer)` pairs) and an **answer normalizer** (domain-specific string comparison). Everything else — the agent, the memory, the backends — stays the same.
@@ -164,15 +161,30 @@ Results land in `results/math500/math500_eval_YYYYMMDD_HHMMSS.jsonl`. Run the ev
 .
 ├── src/
 │   ├── agents/
-│   │   ├── agent_langgraph.py   # LangGraph state graph — core agent + memory loop
-│   │   ├── agent_main.py        # CLI for single-problem solving
-│   │   └── math500_eval.py      # Reference evaluator for MATH-500
-│   └── clients/
-│       ├── llm_client.py        # Provider router (strategy pattern)
-│       ├── gemini_client.py     # Google Gemini backend
-│       ├── openai_client.py     # OpenAI GPT backend
-│       ├── ollama_client.py     # Local Ollama backend
-│       └── vllm_client.py       # vLLM backend + KV cache prefix optimization
+│   │   ├── agent_langgraph.py        # LangGraph tree agent (plan→expand→refine→score→backtrack)
+│   │   ├── tool_augmented_executor.py # Per-node ReAct tool-use loop
+│   │   ├── state.py                  # Shared AgentState
+│   │   ├── agent_main.py             # CLI for single-problem solving
+│   │   └── math500_eval.py           # Reference evaluator for MATH-500
+│   ├── tools/
+│   │   ├── registry.py               # ToolSpec / ToolRegistry
+│   │   ├── planning.py               # Adaptive tree planner
+│   │   ├── refinement.py             # Refiner + cross-critique
+│   │   ├── scoring.py                # Dual scoring + memory + complexity
+│   │   ├── feedback.py               # Validation, failure analysis, backtracking
+│   │   ├── decomposition.py          # Task decomposer + sub-agents
+│   │   ├── synthesis.py              # Final answer synthesis
+│   │   ├── computation.py            # Calculator, equation solver, python_exec, …
+│   │   └── search.py                 # SearchTool (tree expand) + web/Wikipedia/arXiv
+│   ├── clients/
+│   │   ├── llm_client.py             # Provider router (strategy pattern)
+│   │   ├── gemini_client.py          # Google Gemini backend
+│   │   ├── openai_client.py          # OpenAI GPT backend
+│   │   ├── ollama_client.py          # Local Ollama backend
+│   │   └── vllm_client.py            # vLLM backend + KV cache prefix optimization
+│   └── utils/
+│       ├── memory.py                 # Persistent cross-problem memory (class Memory)
+│       └── kv_cache_manager.py       # vLLM prefix-cache prompt structuring
 ├── data/
 │   └── math/
 │       └── math_500_test_with_answers.csv   # Bundled MATH-500 dataset
@@ -229,9 +241,11 @@ MAX_OUTPUT_TOKENS=2048
 TEMPERATURE=0.7
 MAX_REFINEMENTS=3        # refinement passes per problem
 
-MEMORY_INSIGHTS=10       # max insights kept in the reflexion buffer
-MEMORY_FAILURES=10       # max failure patterns kept in the reflexion buffer
+MEMORY_FILE=memory.md    # shared cross-problem memory file (default: <repo>/memory.md)
 ```
+
+Memory is enabled by default. Override the file per run with `--memory-file <path>`, or turn it
+off with `--no-memory` (both `agent_main` and `math500_eval` accept these flags).
 
 </details>
 
@@ -256,9 +270,9 @@ python run_math500_vllm_kvcache_10.py --provider vllm --limit 100
 
 ## 🗺️ Roadmap
 
-1. **Plug-in task interface** — publish a formal `Task` and `Evaluator` protocol so community contributors can add GPQA, MMLU, ScienceWorld, and ARC evaluators without touching the agent
-2. **Embedding-based memory retrieval** — replace FIFO with semantic search so the agent surfaces the *most relevant* past failures, not just the most recent ones
-3. **Streaming trace** — surface Draft, Refine, and memory-update steps in real time via SSE
+1. **Plug-in task interface** — publish a formal `Task` and `Evaluator` protocol so community contributors can add GPQA and ARC evaluators without touching the agent
+2. **Embedding-based memory retrieval** — replace keyword (Jaccard) overlap with semantic search so the agent surfaces the *most relevant* past failures, not just the closest by keyword
+3. **Streaming trace** — surface tree expansion, tool calls, and memory-update steps in real time via SSE
 4. **Docker image** — zero-setup container with Ollama + ReTreVal pre-configured
 5. **HuggingFace Spaces** — hosted demo with public leaderboard
 
@@ -284,7 +298,7 @@ Contributors listed in [AUTHORS.md](AUTHORS.md).
 
 ## 🤝 Contributing · ⭐ Star · 📄 License
 
-Fork, build, PR — see [CONTRIBUTING.md](CONTRIBUTING.md). The highest-value contributions right now are new task evaluators (GPQA, MMLU, ScienceWorld) and memory retrieval strategies.
+Fork, build, PR — see [CONTRIBUTING.md](CONTRIBUTING.md). The highest-value contributions right now are new task evaluators (GPQA, ARC) and memory retrieval strategies.
 
 If ReTreVal is useful to you, a ⭐ helps others find it.
 

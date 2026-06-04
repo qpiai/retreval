@@ -4,6 +4,7 @@ from __future__ import annotations
 import argparse
 import csv
 import json
+import os
 import re
 import time
 from dataclasses import asdict, dataclass
@@ -78,6 +79,9 @@ def evaluate(args: argparse.Namespace) -> List[EvalRow]:
             verbose=args.verbose,
             provider=args.provider,
             model=args.model,
+            memory_file=str(args.memory_file) if args.memory_file else None,
+            use_memory=not args.no_memory,
+            oracle=args.oracle,
         )
         seconds = time.time() - started
         predicted = result.get("predicted_answer", "")
@@ -118,6 +122,19 @@ def main() -> None:
     parser.add_argument("--provider", default=None, help="LLM provider: gemini, openai, ollama, or vllm.")
     parser.add_argument("--model", default=None, help="Provider model name.")
     parser.add_argument("--output-dir", type=Path, default=REPO_ROOT / "results" / "math500")
+    parser.add_argument(
+        "--memory-file",
+        type=Path,
+        default=Path(os.environ["MEMORY_FILE"]) if os.environ.get("MEMORY_FILE") else REPO_ROOT / "memory.md",
+        help="Shared cross-problem memory file (default: <repo>/memory.md).",
+    )
+    parser.add_argument("--no-memory", action="store_true", help="Disable persistent memory.")
+    parser.add_argument(
+        "--oracle",
+        action="store_true",
+        help="Show the reference answer to the agent during solving. "
+        "Off by default — the agent solves without seeing the reference answer.",
+    )
     parser.add_argument("--verbose", action="store_true")
     args = parser.parse_args()
 
