@@ -18,17 +18,12 @@
 
 ## 🎬 Demo
 
-<!-- Inline player with audio: GitHub renders an uploaded .mp4 as a click-to-play video.
-     To enable it, drag docs/demo.mp4 into a GitHub/GitLab issue or PR comment, copy the
-     resulting attachment URL, and paste it on its own line right below this comment. -->
+<!-- GitHub renders the uploaded .mp4 below as an inline click-to-play player (with sound).
+     On GitLab/other viewers it shows as a link; the GIF + screenshot are the fallback. -->
 
-<div align="center">
+https://github.com/user-attachments/assets/2e0d87ff-4634-432c-bda8-de0f52002677
 
-<img src="docs/demo.gif" width="840" alt="ReTreVal UI: a chat on the left; on the right a reasoning tree grows node-by-node with live scores and a streaming trace, ending in a validated answer."></img>
-
-<sub><i>▶︎ Full video with sound: <a href="docs/demo.mp4">docs/demo.mp4</a> &nbsp;·&nbsp; static shot: <a href="docs/screenshot.png">docs/screenshot.png</a></i></sub>
-
-</div>
+<div align="center"><sub><i>▶︎ Click to play (with sound) — two prompts, two domains. &nbsp;·&nbsp; Silent GIF: <a href="docs/demo.gif">docs/demo.gif</a> &nbsp;·&nbsp; Full MP4: <a href="docs/demo.mp4">docs/demo.mp4</a> &nbsp;·&nbsp; <a href="docs/screenshot.png">screenshot</a></i></sub></div>
 
 > **Two prompts, two domains** — number theory (*divisors of 196*) and deep learning (*the GELU formula*) — each solved live: the agent **plans** a tree, **expands** candidate approaches, **refines** each with tools (`python_exec`, `calculator`, `arxiv_search`, `wikipedia`…), **scores** them, **backtracks** out of dead ends, and **remembers** what worked. Every step streams to the UI in real time.
 
@@ -84,7 +79,7 @@ On the next problem the **most relevant** entries — ranked by keyword overlap 
 
 ## 🖥️ Web UI
 
-An interactive chat front-end that visualizes the agent's reasoning **as it happens** — the reasoning tree on the right grows node-by-node (colored by score, best path highlighted), with a live log/trace panel below and the validated answer in the chat.
+A chat where you can **watch the agent think**. Type a problem on the left; on the right the **reasoning tree** grows node-by-node and the **trace** streams live — then the validated answer (with rendered math/code) lands back in the chat.
 
 ```
 ┌──────────────────────┬────────────────────────────────┐
@@ -95,17 +90,34 @@ An interactive chat front-end that visualizes the agent's reasoning **as it happ
    web/ (Next.js)  ──EventSource (SSE)──►  server/ (FastAPI)  ──►  LangGraphAgent
 ```
 
+### Run it
+
 ```bash
-# 1 — backend bridge (mock mode = no API key needed, streams a canned run)
+# 1 — backend bridge.  Mock mode = no API key, streams a deterministic demo run.
 cd retreval_oss && . .venv/bin/activate
 pip install -r server/requirements.txt
 RETREVAL_MOCK=1 uvicorn server.app:app --port 7373
 
-# 2 — UI (in another shell)
-cd web && npm install && npm run dev      # → http://localhost:7575
+# 2 — UI (in a second shell)
+cd web && npm install && npm run dev          # → http://localhost:7575
 ```
 
-Drop a real key into `.env` (`GEMINI_API_KEY=…`) and start the backend **without** `RETREVAL_MOCK` to drive the real agent. The UI ships dark/light themes, a provider/iterations/memory selector, and markdown-rendered answers. Full details + the demo-video pipeline: [`web/README.md`](web/README.md), [`scripts/README.md`](scripts/README.md), [`video/README.md`](video/README.md).
+Open **http://localhost:7575**. To drive the **real agent** instead of the mock,
+configure a provider in `.env` (e.g. `LLM_PROVIDER=gemini`, `GEMINI_API_KEY=…`)
+and start the backend **without** `RETREVAL_MOCK`. The UI auto-detects which
+provider the backend is using.
+
+### Using it
+
+- **Ask anything** — type a problem and press **Enter**, or click a suggested example. It's domain-general: math, science, coding, knowledge, or open-ended all work.
+- **Watch the tree** *(right, top)* — every node is a candidate approach, **colored by score**; the **★ pink** node is the current best and the highlighted edge is the active path. Drag to pan, scroll to zoom.
+- **Follow the trace** *(right, bottom)* — `plan → expand → tool-refine → score → backtrack → synthesize → validate`, with each tool call (`calculator`, `python_exec`, `arxiv_search`, `wikipedia`…) and memory write streaming in.
+- **Tune the run** *(top bar)* — choose the **provider**, set **iterations** (how many tree passes), toggle **memory**, and switch **🌙 / ☀️** themes.
+- **Resize / focus** — drag the divider to resize the panes, **double-click** it to reset to 50/50, or hit **✕** to collapse the panel for a distraction-free chat.
+
+> Ports are chosen to be memorable and browser-safe: **UI `7575`**, **API `7373`**.
+
+Build a static bundle for deployment with `npm run build` (outputs `web/out/`, serve with any static host). Full details + the demo-video pipeline: [`web/README.md`](web/README.md), [`scripts/README.md`](scripts/README.md), [`video/README.md`](video/README.md).
 
 ---
 
