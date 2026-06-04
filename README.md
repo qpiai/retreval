@@ -303,7 +303,7 @@ ReTreVal stands on the shoulders of these wonderful projects — thank you to th
 
 [LangGraph](https://langchain-ai.github.io/langgraph/) · [MATH-500](https://huggingface.co/datasets/HuggingFaceH4/MATH-500) · [Google Gemini](https://ai.google.dev/gemini-api/docs) · [OpenAI](https://platform.openai.com/docs) · [Ollama](https://ollama.com/) · [vLLM](https://docs.vllm.ai/) · [Next.js](https://nextjs.org/) · [React Flow](https://reactflow.dev/).
 
-And thank you to everyone in [AUTHORS.md](AUTHORS.md).
+Maintainers and contributors are listed in [AUTHORS.md](AUTHORS.md).
 
 ---
 
