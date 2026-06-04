@@ -10,7 +10,7 @@
 [![Next.js UI](https://img.shields.io/badge/UI-Next.js-000?style=flat&logo=next.js)](web/)
 [![Python 3.9+](https://img.shields.io/badge/python-3.9+-3776AB.svg?style=flat&logo=python&logoColor=white)](https://www.python.org/)
 
-[Demo](#-demo) · [Why](#-why-retreval) · [How it works](#-how-it-works) · [Web UI](#-web-ui) · [Quickstart](#-quickstart) · [Results](#-results)
+[Demo](#-demo) · [Mission](#-mission) · [Why](#-why-retreval) · [How it works](#-how-it-works) · [Web UI](#-web-ui) · [Quickstart](#-quickstart) · [Results](#-results)
 
 </div>
 
@@ -29,9 +29,15 @@ https://github.com/user-attachments/assets/2e0d87ff-4634-432c-bda8-de0f52002677
 
 ---
 
+## 🎯 Mission
+
+> **Build an agent that learns.** Most reasoning frameworks run each problem cold; ReTreVal accumulates what worked and what failed across runs and feeds it into every new attempt — one pipeline, any task, continuously improving, no fine-tuning.
+
+---
+
 ## 🤔 Why ReTreVal
 
-Most LLM reasoning frameworks are **stateless** — every problem starts cold. ReTreVal is different. It constructs a **tree** of candidate reasoning paths, scores each node with **dual local + cross validation**, prunes aggressively, and writes what worked and what failed into a **persistent memory**. The next problem is attempted with that context already in the prompt. Over hundreds of runs, the agent measurably improves on its own weak spots — no fine-tuning required.
+ReTreVal treats reasoning as **search with feedback** — explore candidate paths as a tree, validate and prune them, then remember the outcome for next time. Concretely, that means:
 
 - 🌳 **Tree + validation, not just a chain** — candidates are explored as a branching tree, each scored by self-eval **and** an external LLM critic; the best path advances.
 - 🛠️ **Tools at every node** — a ReAct loop lets the model call a calculator, equation solver, `python_exec`, and web/Wikipedia/arXiv search to *verify* its reasoning instead of guessing.
