@@ -53,16 +53,7 @@ ReTreVal treats reasoning as **search with feedback** — explore candidate path
 
 ReTreVal is a compiled [LangGraph](https://langchain-ai.github.io/langgraph/) state graph. For each problem it grows an **adaptive reasoning tree** whose depth/branching scale with estimated complexity. Each node self-improves through a **tool-augmented ReAct loop**, is scored by **dual validation** (`0.6 × local self-eval + 0.4 × external critic`), and on validation failure performs **typed-failure backtracking**. Hard problems are **decomposed** into sub-tasks. A persistent **memory** feeds past successes and failures into every new attempt.
 
-```
-                     ┌─────────────── 🧠 memory (insights · failures) ───────────────┐
-                     ▼                                                                │
-  📋 problem → 🗺️ plan → 🌳 expand → 🛠️ tool-refine → 🔍 critique → 📊 dual score ──┘
-                              ▲                                          │
-                              └──────── 🔙 backtrack ◀─ ❌ ── ✅ validate ◀─ 🧩 synthesize
-                                                                         │
-                                                                         ▼
-                                                                    📦 answer
-```
+<div align="center"><img src="docs/architecture.png" width="880" alt="ReTreVal architecture: Problem → Complexity Estimator → Plan → Expand tree → per-node tool-grounded refinement loop (tool registry + execution) → Critique → Dual scoring → Backtracking / Failure analysis, with Task Decomposition, Prune, Synthesize, Validate, Feedback, and a Gradient-refined Memory, orchestrated as a LangGraph pipeline."></div>
 
 | Step | What happens |
 |---|---|
@@ -87,13 +78,29 @@ On the next problem the **most relevant** entries — ranked by keyword overlap 
 
 A chat where you can **watch the agent think**. Type a problem on the left; on the right the **reasoning tree** grows node-by-node and the **trace** streams live — then the validated answer (with rendered math/code) lands back in the chat.
 
-```
-┌──────────────────────┬────────────────────────────────┐
-│                      │   🌳 Reasoning tree (React Flow) │
-│   💬 Chat            ├────────────────────────────────┤
-│                      │   📜 Live logs / trace          │
-└──────────────────────┴────────────────────────────────┘
-   web/ (Next.js)  ──EventSource (SSE)──►  server/ (FastAPI)  ──►  LangGraphAgent
+```mermaid
+%%{init: {'theme':'base', 'themeVariables': {'fontFamily':'Inter, sans-serif','primaryColor':'#fce7f3','primaryBorderColor':'#ec4899','lineColor':'#8b5cf6'}}}%%
+flowchart LR
+    subgraph UI["🖥️ web/ — Next.js · :7575"]
+        direction TB
+        C["💬 Chat"]
+        T["🌳 Reasoning tree<br/>(React Flow)"]
+        L["📜 Live logs / trace"]
+    end
+    subgraph SRV["⚙️ server/ — FastAPI · :7373"]
+        B["SSE bridge"]
+    end
+    A["🤖 LangGraphAgent<br/>plan → expand → refine → score → validate"]
+
+    UI -->|"ask a problem (GET)"| B
+    B -.->|"stream: status · log · step · tree · final"| UI
+    B --> A
+    A -.->|"node events"| B
+
+    classDef pink fill:#fce7f3,stroke:#ec4899,color:#831843;
+    classDef violet fill:#ede9fe,stroke:#8b5cf6,color:#4c1d95;
+    class C,T,L pink
+    class B,A violet
 ```
 
 ### Run it
@@ -282,7 +289,7 @@ The vLLM client structures prompts so the system message and problem context are
 3. **Bundle the LLM-judge eval** so the paper's judged scores are reproducible from the repo.
 4. **Docker image** — zero-setup container with Ollama + ReTreVal + the UI pre-wired.
 
-Follow along in [Issues](../../issues).
+Follow along — and please share ideas — in [Issues](../../issues).
 
 ---
 
@@ -292,12 +299,16 @@ Follow along in [Issues](../../issues).
 
 ## 🙏 Thanks
 
-[LangGraph](https://langchain-ai.github.io/langgraph/) · [MATH-500](https://huggingface.co/datasets/HuggingFaceH4/MATH-500) · [Google Gemini](https://ai.google.dev/gemini-api/docs) · [OpenAI](https://platform.openai.com/docs) · [Ollama](https://ollama.com/) · [vLLM](https://docs.vllm.ai/) · [Next.js](https://nextjs.org/) · [React Flow](https://reactflow.dev/). Contributors in [AUTHORS.md](AUTHORS.md).
+ReTreVal stands on the shoulders of these wonderful projects — thank you to their authors and communities:
+
+[LangGraph](https://langchain-ai.github.io/langgraph/) · [MATH-500](https://huggingface.co/datasets/HuggingFaceH4/MATH-500) · [Google Gemini](https://ai.google.dev/gemini-api/docs) · [OpenAI](https://platform.openai.com/docs) · [Ollama](https://ollama.com/) · [vLLM](https://docs.vllm.ai/) · [Next.js](https://nextjs.org/) · [React Flow](https://reactflow.dev/).
+
+And thank you to everyone in [AUTHORS.md](AUTHORS.md).
 
 ---
 
 ## 🤝 Contributing · ⭐ Star · 📄 License
 
-Fork, build, PR — see [CONTRIBUTING.md](CONTRIBUTING.md). Highest-value contributions right now: new task evaluators (GPQA, ARC), the LLM-judge eval harness, and memory retrieval strategies. If ReTreVal is useful to you, a ⭐ helps others find it.
+Contributions are very welcome — please see [CONTRIBUTING.md](CONTRIBUTING.md) to get started. The most helpful right now: new task evaluators (GPQA, ARC), the LLM-judge eval harness, and memory retrieval strategies. If ReTreVal is useful to you, a ⭐ would mean a lot — and thank you for taking a look.
 
 Copyright 2026 QPIAI. Released under the [Apache License 2.0](LICENSE).
