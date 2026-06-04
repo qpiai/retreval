@@ -79,28 +79,17 @@ On the next problem the **most relevant** entries — ranked by keyword overlap 
 A chat where you can **watch the agent think**. Type a problem on the left; on the right the **reasoning tree** grows node-by-node and the **trace** streams live — then the validated answer (with rendered math/code) lands back in the chat.
 
 ```mermaid
-%%{init: {'theme':'base', 'themeVariables': {'fontFamily':'Inter, sans-serif','primaryColor':'#fce7f3','primaryBorderColor':'#ec4899','lineColor':'#8b5cf6'}}}%%
+%%{init: {'theme':'base', 'themeVariables': {'fontFamily':'Inter, sans-serif','lineColor':'#8b5cf6'}}}%%
 flowchart LR
-    subgraph UI["🖥️ web/ — Next.js · :7575"]
-        direction TB
-        C["💬 Chat"]
-        T["🌳 Reasoning tree<br/>(React Flow)"]
-        L["📜 Live logs / trace"]
-    end
-    subgraph SRV["⚙️ server/ — FastAPI · :7373"]
-        B["SSE bridge"]
-    end
-    A["🤖 LangGraphAgent<br/>plan → expand → refine → score → validate"]
-
-    UI -->|"ask a problem (GET)"| B
-    B -.->|"stream: status · log · step · tree · final"| UI
-    B --> A
-    A -.->|"node events"| B
+    You([🧑 You]) -->|"type a problem"| UI
+    UI["🖥️ Web UI · Next.js<br/>💬 chat · 🌳 tree · 📜 logs"] -->|"GET /api/solve"| API
+    API["⚙️ FastAPI bridge"] --> Agent["🤖 LangGraphAgent<br/>plan → expand → refine → score → validate"]
+    Agent -. "live events stream back (SSE)" .-> UI
 
     classDef pink fill:#fce7f3,stroke:#ec4899,color:#831843;
     classDef violet fill:#ede9fe,stroke:#8b5cf6,color:#4c1d95;
-    class C,T,L pink
-    class B,A violet
+    class UI pink
+    class API,Agent violet
 ```
 
 ### Run it
