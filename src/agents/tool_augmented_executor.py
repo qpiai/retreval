@@ -107,7 +107,7 @@ Examples:
 
 When you have a final answer, use:
 THOUGHT: <summary of reasoning>
-ACTION: FINISH("\\boxed{{your_answer}}")
+ACTION: FINISH("<your final answer>")
 
 TOOL SELECTION GUIDE — match the tool to the problem:
 - MATH (algebra, calculus, geometry, number theory, combinatorics):
@@ -133,12 +133,11 @@ TOOL SELECTION GUIDE — match the tool to the problem:
 
 Rules:
 - Pick a tool from AVAILABLE TOOLS above or use FINISH. Do NOT invent tool names.
-- Focus ONLY on the PROBLEM stated above. Do NOT analyze the prompt — just solve the problem.
-- You MUST use at least one tool before using FINISH. Tools help verify your reasoning and catch errors.
-- NEVER do arithmetic, algebra, or numerical computation in your head — ALWAYS use calculator, equation_solver, or python_exec.
-- For domain-specific questions, use web_search FIRST to get facts, then compute if needed.
+- Focus ONLY on the TASK stated above. Do NOT analyze the prompt — just answer the task.
+- Use a tool when it helps verify or look something up. For arithmetic/algebra/numerical work, use calculator, equation_solver, or python_exec rather than computing in your head. For factual/domain questions, use web_search or wikipedia first.
+- For a simple, conversational, or open-ended task, you may FINISH directly without a tool.
 - Do NOT repeat the same tool call with the same input.
-- Put your final answer in \\boxed{{answer}} format.
+- If the task has a short, definite answer (number, expression, choice, or short phrase), wrap it as \\boxed{{answer}}; otherwise put your full answer directly in FINISH.
 """
 
 
@@ -204,21 +203,11 @@ class ToolAugmentedExecutor:
                 print(f"    THOUGHT: {thought[:200]}")
                 print(f"    ACTION:  {tool_name}({tool_input[:120]})")
 
-            # FINISH — but force at least one tool use first
+            # FINISH — accept the model's final answer. We do NOT force a tool
+            # call first: that made simple/conversational/open-ended tasks fail
+            # (e.g. a greeting forced through a calculator). The model uses tools
+            # when they help — see the tool-selection guidance in the prompt.
             if tool_name.upper() == "FINISH":
-                if tool_calls == 0 and step_idx < max_total - 1:
-                    # No tools used yet — nudge the model to use a tool first
-                    if self.verbose:
-                        print("    (No tools used yet — nudging to use a tool before FINISH)")
-                    history.append({
-                        "step": step_idx + 1,
-                        "thought": thought,
-                        "action": "FINISH_BLOCKED",
-                        "input": tool_input,
-                        "observation": "You must use at least one tool (calculator, python_exec, web_search, etc.) to verify your reasoning before finishing. Do NOT use FINISH yet.",
-                    })
-                    last_thought = thought
-                    continue
                 final = tool_input if tool_input else thought
                 history.append({
                     "step": step_idx + 1,
@@ -295,7 +284,7 @@ class ToolAugmentedExecutor:
         prompt, system_prompt = self._build_prompt(
             problem, plan, last_thought, memory_summary, history
         )
-        prompt += "\n\nYou have used all available tool calls. You MUST now use FINISH to provide your final answer.\nTHOUGHT: <summarize>\nACTION: FINISH(\"\\boxed{your_answer}\")"
+        prompt += "\n\nYou have used all available tool calls. You MUST now use FINISH to provide your final answer.\nTHOUGHT: <summarize>\nACTION: FINISH(\"<your final answer; use \\boxed{...} only for a short definite answer>\")"
         raw = _strip_think_tags(
             self._call_llm(prompt, system_prompt=system_prompt) or ""
         )

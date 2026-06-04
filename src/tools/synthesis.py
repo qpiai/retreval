@@ -187,16 +187,18 @@ class SynthesizerTool:
         # Build concise context from strategy (limit to avoid overwhelming the model)
         strategy_short = (strategy or '')[:1000]
 
-        # Strategy 1: Direct math-focused prompt — simple and clear
-        structured_prompt = f"""Solve this math problem step by step.
+        # Strategy 1: Direct, task-agnostic prompt — simple and clear
+        structured_prompt = f"""Answer the following task, using the reasoning gathered so far.
 
-Problem: {problem}
+Task: {problem}
 
 Reasoning so far: {strategy_short}
 
-Show your step-by-step solution, then put your final answer in \\boxed{{answer}} format.
+Give a clear, complete answer. If the task has a short, definite answer (a number,
+expression, multiple-choice option, or short phrase), put that final answer in
+\\boxed{{answer}} format at the end; otherwise just answer directly.
 
-Solution:"""
+Answer:"""
 
         output = self._strip_think_tags(
             self.llm._call_api(structured_prompt, max_tokens=2048)
@@ -212,9 +214,9 @@ Solution:"""
             print(f"   ⚠️ First generation failed validation: {reason}. Retrying...")
 
         # Strategy 2: Even simpler prompt
-        direct_prompt = f"""Problem: {problem}
+        direct_prompt = f"""Task: {problem}
 
-Solve step by step. Final answer in \\boxed{{answer}} format.
+Answer clearly. Use \\boxed{{answer}} only if there is a short, definite final answer.
 
 Solution:"""
 

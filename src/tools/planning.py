@@ -74,22 +74,23 @@ Format: "Complexity: X - [reason]"
             print(f"\n📊 Problem Complexity Assessment: {complexity}/5")
             print(f"🌳 Adaptive Tree Config: max_depth={config['max_depth']}, children_per_expansion={config['children_per_expansion']}")
         
-        prompt = f"""You are an expert mathematical problem solver creating a strategic plan.
+        prompt = f"""You are an expert problem solver creating a strategic plan.
+The task may be math, logic, factual/knowledge, coding, analysis, writing, or open-ended.
 
-Problem:
+Task:
 {state['problem']}
 
 Memory insights:
 {memo}
 
-For mathematical problems:
-1. Identify the target value and available numbers/operations
-2. Consider different groupings using parentheses
-3. Try various operator combinations systematically
-4. Verify arithmetic at each step
-5. Check all constraints are satisfied
+Write a short plan tailored to THIS task:
+1. Identify what is being asked and what a good final answer looks like.
+2. Note the key facts, quantities, constraints, or sub-questions involved.
+3. Decide what to verify with a tool (calculation, code, lookup) vs. reason directly.
+4. Outline the steps to reach and check the answer.
 
-Return 3-5 concrete, actionable steps focused on solving THIS specific problem."""
+Return 3-5 concrete, actionable steps focused on THIS specific task.
+If the task is trivial or conversational, a single step is fine."""
         plan = self.llm._call_api(prompt) or ""
         state['plan'] = plan.strip()
         state['approach_type'] = 'general'  # Set default so skepticism system works
@@ -107,7 +108,7 @@ Return 3-5 concrete, actionable steps focused on solving THIS specific problem."
             "id": "root",
             "parent_id": None,
             "depth": 0,
-            "thought": f"IMPROVED:\n{state['plan']}",
+            "thought": f"Plan:\n{state['plan']}",
             "state": {"type": "problem"},
             "refinement_count": 0,
             "critique_history": [],

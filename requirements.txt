@@ -1,4 +1,5 @@
-# Tree-of-Thoughts + Self-Refine Requirements
+# ReTreVal — core agent requirements.
+# (The web UI bridge has its own deps in server/requirements.txt.)
 
 # Core dependencies
 google-generativeai>=0.3.0

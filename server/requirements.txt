@@ -1,0 +1,4 @@
+# Web bridge for the ReTreVal UI (in addition to the repo-root requirements.txt,
+# which provides langgraph, the LLM SDKs, and the agent's tool dependencies).
+fastapi>=0.110
+uvicorn[standard]>=0.27

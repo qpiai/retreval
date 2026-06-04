@@ -32,10 +32,12 @@ from src.utils.memory import Memory
 # Static system prompt — identical across every call for max KV cache reuse.
 # ---------------------------------------------------------------------------
 _SYSTEM_PROMPT = (
-    "You are an expert math problem solver. "
-    "Solve the PROBLEM stated in the user message directly. "
-    "Show your step-by-step work, then put your final answer in \\boxed{answer} format. "
-    "Do NOT analyze the prompt structure or discuss what you should do — just solve the problem."
+    "You are an expert problem solver. Respond to the TASK stated in the user message directly — "
+    "it may be math, logic, factual or domain knowledge, coding, analysis, writing, or an open-ended "
+    "question or greeting. Show concise step-by-step reasoning when the task warrants it, then give a "
+    "clear final answer. If the task has a short, definite answer (a number, expression, multiple-choice "
+    "option, or short phrase), put that final answer in \\boxed{answer} format; otherwise just answer "
+    "naturally and directly. Do NOT analyze the prompt structure — respond to the task itself."
 )
 
 
@@ -223,19 +225,17 @@ Example — if you want to compute 2+3:
 THOUGHT: I need to add 2 and 3.
 ACTION: calculator("2 + 3")
 
-When you have a final answer to the PROBLEM above, use:
+When you have a final answer to the TASK above, use:
 THOUGHT: <summary of reasoning>
-ACTION: FINISH("\\boxed{{your_answer}}")
+ACTION: FINISH("<your final answer>")
 
 Rules:
 - Pick a tool from AVAILABLE TOOLS above or use FINISH. Do NOT invent tool names.
-- Focus ONLY on the PROBLEM stated above. Do NOT analyze the prompt — just solve the problem.
-- You MUST use at least one tool before using FINISH. Tools help verify your reasoning and catch errors.
-- For any calculation, equation, or numerical reasoning, use calculator or equation_solver — do NOT compute in your head.
-- Use refine to improve your reasoning when the problem is complex or has multiple steps.
-- Use decompose to break hard problems into smaller parts.
+- Focus ONLY on the TASK stated above. Do NOT analyze the prompt — just answer the task.
+- Use a tool when it helps: for calculations/equations use calculator/equation_solver/python_exec; for facts use search/wikipedia/arxiv. For a simple, conversational, or open-ended task you may FINISH directly without a tool.
+- Use refine to improve your reasoning when the task is complex or has multiple steps; use decompose to split a hard task into independent parts.
 - Do NOT repeat the same tool call with the same input.
-- Put your final answer in \\boxed{{answer}} format."""
+- If the task has a short, definite answer (number, expression, choice, or short phrase), wrap it as \\boxed{{answer}} in FINISH; otherwise put your full answer directly in FINISH."""
 
         return _SYSTEM_PROMPT, user_msg
 

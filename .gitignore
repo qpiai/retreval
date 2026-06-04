@@ -48,3 +48,19 @@ memory.md
 .DS_Store
 Thumbs.db
 myenv/
+
+# Web UI (Next.js) + demo video (Remotion)
+web/node_modules/
+web/.next/
+web/out/
+node_modules/
+video/node_modules/
+video/out/
+# Regenerable demo media (capture footage + staged BGM); sources live in docs/.
+video/public/*.mp4
+video/public/*.mp3
+docs/.rec/
+# NOTE: docs/{demo.mp4,demo.gif,screenshot.png,bgm3.mp3} ARE committed (README media).
+
+# Scratch debug screenshots
+debug/

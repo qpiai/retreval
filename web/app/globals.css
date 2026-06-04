@@ -1,0 +1,158 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@import "highlight.js/styles/github.css";
+@import "katex/dist/katex.min.css";
+
+/* ---- theme tokens -------------------------------------------------------- */
+:root {
+  --bg-0: #f7f8fb;
+  --bg-1: #eef1f6;
+  --fg: #0f172a;
+  --fg-dim: #475569;
+  --panel-border: rgba(15, 23, 42, 0.08);
+  --panel-bg: rgba(255, 255, 255, 0.82);
+  --scroll-thumb: rgba(15, 23, 42, 0.18);
+}
+
+.dark {
+  --bg-0: #07070b;
+  --bg-1: #0c0c14;
+  --fg: #e7ecf3;
+  --fg-dim: #9aa6bd;
+  --panel-border: rgba(120, 130, 170, 0.16);
+  --panel-bg: rgba(16, 18, 30, 0.55);
+  --scroll-thumb: rgba(255, 255, 255, 0.1);
+}
+
+html,
+body {
+  height: 100%;
+  background-color: var(--bg-0);
+  color: var(--fg);
+}
+
+body {
+  background-image: radial-gradient(
+      900px 520px at 12% -8%,
+      rgba(236, 72, 153, 0.1),
+      transparent 60%
+    ),
+    radial-gradient(900px 520px at 92% 108%, rgba(139, 92, 246, 0.12), transparent 60%),
+    radial-gradient(700px 420px at 80% 0%, rgba(34, 211, 238, 0.07), transparent 60%),
+    linear-gradient(180deg, var(--bg-0), var(--bg-1));
+  background-attachment: fixed;
+}
+
+::-webkit-scrollbar {
+  width: 8px;
+  height: 8px;
+}
+::-webkit-scrollbar-thumb {
+  background: var(--scroll-thumb);
+  border-radius: 8px;
+}
+
+@layer components {
+  .panel {
+    border: 1px solid var(--panel-border);
+    background: var(--panel-bg);
+    backdrop-filter: blur(12px);
+    border-radius: 1rem;
+  }
+  .gradient-text {
+    background-image: linear-gradient(110deg, #ec4899 0%, #8b5cf6 50%, #22d3ee 100%);
+    -webkit-background-clip: text;
+    background-clip: text;
+    color: transparent;
+  }
+  .chip {
+    @apply rounded-full border px-3 py-1 text-xs transition-colors;
+    border-color: var(--panel-border);
+    color: var(--fg-dim);
+  }
+  .chip:hover {
+    color: var(--fg);
+    border-color: rgba(139, 92, 246, 0.5);
+  }
+}
+
+/* ---- markdown answers ---------------------------------------------------- */
+.prose-rt {
+  font-size: 0.875rem;
+  line-height: 1.55;
+}
+.prose-rt p {
+  margin: 0.35rem 0;
+}
+.prose-rt ul,
+.prose-rt ol {
+  margin: 0.35rem 0;
+  padding-left: 1.2rem;
+}
+.prose-rt li {
+  margin: 0.15rem 0;
+}
+.prose-rt pre {
+  background: #f6f8fa;
+  border: 1px solid #e5e7eb;
+  border-radius: 10px;
+  padding: 0.7rem 0.9rem;
+  overflow-x: auto;
+  margin: 0.5rem 0;
+}
+.prose-rt code {
+  background: rgba(15, 23, 42, 0.06);
+  padding: 1px 5px;
+  border-radius: 4px;
+  font-size: 0.82em;
+}
+.prose-rt pre code {
+  background: transparent;
+  padding: 0;
+}
+.dark .prose-rt pre {
+  background: #0a0a12;
+  border-color: #26262f;
+}
+.dark .prose-rt code {
+  background: rgba(255, 255, 255, 0.07);
+}
+.dark .hljs {
+  color: #c9d1d9;
+  background: transparent;
+}
+.dark .hljs-keyword,
+.dark .hljs-built_in {
+  color: #ff7b72;
+}
+.dark .hljs-string {
+  color: #a5d6ff;
+}
+.dark .hljs-number {
+  color: #79c0ff;
+}
+.dark .hljs-title,
+.dark .hljs-name {
+  color: #d2a8ff;
+}
+
+/* ---- react-flow theming -------------------------------------------------- */
+.react-flow__attribution {
+  display: none;
+}
+.react-flow__controls-button {
+  background: var(--panel-bg);
+  border-bottom: 1px solid var(--panel-border);
+  color: var(--fg-dim);
+}
+.react-flow__controls-button:hover {
+  color: var(--fg);
+}
+.react-flow__controls-button svg {
+  fill: currentColor;
+}
+.react-flow__edge-path {
+  transition: stroke 0.3s ease;
+}

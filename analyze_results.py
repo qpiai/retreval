@@ -1,93 +1,99 @@
+"""Summarize ReTreVal MATH-500 evaluation runs.
+
+Reads the JSONL files written by ``src.agents.math500_eval`` (one row per
+problem) and reports exact-match accuracy, latency, and a per-level / per-subject
+breakdown. Pass one or more run files, or a directory (defaults to
+``results/math500/``, newest run picked automatically).
+
+    python analyze_results.py                          # newest run in results/math500/
+    python analyze_results.py results/math500/run_a.jsonl results/math500/run_b.jsonl
 """
-HumanEval Benchmark Results Analysis
-Compares performance of all 4 reasoning frameworks
-"""
+from __future__ import annotations
 
 import argparse
-import pandas as pd
+import json
+from collections import defaultdict
 from pathlib import Path
+from typing import List
 
 
 def parse_args() -> argparse.Namespace:
-    parser = argparse.ArgumentParser(description="Compare HumanEval benchmark result CSVs.")
-    parser.add_argument(
+    p = argparse.ArgumentParser(description="Summarize ReTreVal MATH-500 eval runs.")
+    p.add_argument(
+        "runs",
+        nargs="*",
+        type=Path,
+        help="JSONL run files. If omitted, the newest file in --results-dir is used.",
+    )
+    p.add_argument(
         "--results-dir",
         type=Path,
-        default=Path("results/humaneval"),
-        help="Directory containing HumanEval result CSV files.",
+        default=Path("results/math500"),
+        help="Directory of MATH-500 result JSONL files (default: results/math500).",
     )
-    return parser.parse_args()
+    return p.parse_args()
+
+
+def load_rows(path: Path) -> List[dict]:
+    with path.open(encoding="utf-8") as fh:
+        return [json.loads(line) for line in fh if line.strip()]
+
+
+def summarize(path: Path) -> None:
+    rows = load_rows(path)
+    if not rows:
+        print(f"{path}: (empty)")
+        return
+
+    total = len(rows)
+    passed = sum(1 for r in rows if r.get("passed"))
+    seconds = [float(r.get("seconds", 0)) for r in rows]
+    avg_s = sum(seconds) / total if total else 0.0
+
+    print("=" * 78)
+    print(f"RUN: {path.name}   ({total} problems)")
+    print("=" * 78)
+    print(f"  Accuracy (exact-match) : {passed}/{total}  =  {passed / total * 100:5.1f}%")
+    print(f"  Avg time / problem     : {avg_s:6.2f}s   (total {sum(seconds) / 60:.1f} min)")
+
+    by_level: dict = defaultdict(lambda: [0, 0])
+    by_subject: dict = defaultdict(lambda: [0, 0])
+    for r in rows:
+        lvl, sub = str(r.get("level", "?")), str(r.get("subject", "?"))
+        by_level[lvl][1] += 1
+        by_subject[sub][1] += 1
+        if r.get("passed"):
+            by_level[lvl][0] += 1
+            by_subject[sub][0] += 1
+
+    print("\n  By level:")
+    for lvl in sorted(by_level):
+        ok, n = by_level[lvl]
+        print(f"    level {lvl:<3} {ok:>3}/{n:<3}  {ok / n * 100:5.1f}%")
+
+    print("\n  By subject:")
+    for sub in sorted(by_subject):
+        ok, n = by_subject[sub]
+        print(f"    {sub:<24} {ok:>3}/{n:<3}  {ok / n * 100:5.1f}%")
+    print()
 
 
 def main() -> None:
     args = parse_args()
-    results_dir = args.results_dir
-
-    files = {
-        "ReTreVal": results_dir / "humaneval_retreval.csv",
-        "ReAct": results_dir / "humaneval_react.csv",
-        "Reflexion": results_dir / "humaneval_reflexion.csv",
-        "Self-Refine": results_dir / "humaneval_self-refine.csv",
-    }
-
-    results = {}
-    for method, filepath in files.items():
-        if filepath.exists():
-            df = pd.read_csv(filepath)
-            passed = df["passed"].sum()
-            total = len(df)
-            pass_rate = (passed / total * 100) if total > 0 else 0
-            avg_time = df["time_taken"].mean()
-
-            results[method] = {
-                "passed": passed,
-                "total": total,
-                "pass_rate": pass_rate,
-                "avg_time": avg_time,
-                "total_time": df["time_taken"].sum(),
-            }
-
-    print("\n" + "=" * 100)
-    print("HUMANEVAL BENCHMARK RESULTS")
-    print("=" * 100)
-    print(f"{'Method':<15} {'Passed':<10} {'Total':<10} {'Pass@1':<12} {'Avg Time':<12} {'Total Time':<12}")
-    print("-" * 100)
-
-    for method in ["ReTreVal", "ReAct", "Reflexion", "Self-Refine"]:
-        if method in results:
-            r = results[method]
-            print(
-                f"{method:<15} {r['passed']:<10} {r['total']:<10} "
-                f"{r['pass_rate']:>6.2f}%     {r['avg_time']:>8.2f}s     {r['total_time']:>8.2f}s"
+    runs = list(args.runs)
+    if not runs:
+        if not args.results_dir.exists():
+            raise SystemExit(
+                f"No run files given and {args.results_dir} does not exist. "
+                "Run an eval first: python -m src.agents.math500_eval --limit 100"
             )
+        candidates = sorted(args.results_dir.glob("*.jsonl"))
+        if not candidates:
+            raise SystemExit(f"No .jsonl runs found in {args.results_dir}.")
+        runs = [candidates[-1]]  # newest by timestamped name
 
-    print("=" * 100)
-
-    if results:
-        max_pass = max(r["pass_rate"] for r in results.values())
-        min_pass = min(r["pass_rate"] for r in results.values())
-        pass_diff = max_pass - min_pass
-
-        print("\nKEY FINDINGS:\n")
-        print(f"1. Pass Rate Range: {min_pass:.2f}% - {max_pass:.2f}% (Difference: {pass_diff:.2f}%)")
-
-        max_speed = max(r["avg_time"] for r in results.values())
-        min_speed = min(r["avg_time"] for r in results.values())
-        speed_factor = max_speed / min_speed if min_speed > 0 else 0
-
-        print(f"2. Speed Range: {min_speed:.2f}s - {max_speed:.2f}s avg per problem")
-        print(f"   Fastest vs Slowest: {speed_factor:.1f}x difference")
-
-        print("\n3. Trade-offs:")
-        for method, r in results.items():
-            if r["pass_rate"] >= max_pass - 1:
-                print(f"   {method}: Highest pass rate ({r['pass_rate']:.2f}%)")
-            if r["avg_time"] <= min_speed + 0.5:
-                print(f"   {method}: Fastest execution ({r['avg_time']:.2f}s avg)")
-            if r["avg_time"] >= max_speed - 1:
-                print(f"   {method}: Most thorough exploration ({r['avg_time']:.2f}s avg)")
-
-    print("\n" + "=" * 100)
+    for path in runs:
+        summarize(path)
 
 
 if __name__ == "__main__":
