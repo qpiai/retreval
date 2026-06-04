@@ -63,5 +63,6 @@ cd out && python3 -m http.server 7575
   Chromium-safe — note 6666 is blocked by browsers as an unsafe port).
 - Provider / iterations / memory are selectable in the header; they map to the
   agent's `--provider`, `--iterations`, and `--no-memory` options.
-- **Mock mode** (`RETREVAL_MOCK=1`) needs no model or key and powers the demo
-  capture in [`scripts/`](../scripts/).
+- **Mock mode** (`RETREVAL_MOCK=1`) needs no model or key — it streams a
+  deterministic demo run, handy for trying the UI or running the smoke test in
+  [`scripts/`](../scripts/).

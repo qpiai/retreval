@@ -1,5 +1,0 @@
-node_modules/
-out/
-# Regenerable: footage (capture) + staged BGM (copied from docs/ by build_demo.sh)
-public/*.mp4
-public/*.mp3

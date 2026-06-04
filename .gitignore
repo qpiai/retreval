@@ -56,11 +56,14 @@ web/out/
 node_modules/
 video/node_modules/
 video/out/
-# Regenerable demo media (capture footage + staged BGM); sources live in docs/.
-video/public/*.mp4
-video/public/*.mp3
 docs/.rec/
-# NOTE: docs/{demo.mp4,demo.gif,screenshot.png,bgm3.mp3} ARE committed (README media).
+# NOTE: docs/{demo.mp4,demo.gif,screenshot.png} ARE committed (README media).
 
 # Scratch debug screenshots
 debug/
+
+# Demo-video generation kept local — only the final docs/demo.* media is committed.
+video/
+docs/*.mp3
+scripts/capture_demo.py
+scripts/build_demo.sh

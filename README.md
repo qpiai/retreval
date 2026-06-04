@@ -117,7 +117,7 @@ provider the backend is using.
 
 > Ports are chosen to be memorable and browser-safe: **UI `7575`**, **API `7373`**.
 
-Build a static bundle for deployment with `npm run build` (outputs `web/out/`, serve with any static host). Full details + the demo-video pipeline: [`web/README.md`](web/README.md), [`scripts/README.md`](scripts/README.md), [`video/README.md`](video/README.md).
+Build a static bundle for deployment with `npm run build` (outputs `web/out/`, serve with any static host). More detail in [`web/README.md`](web/README.md).
 
 ---
 
@@ -191,8 +191,7 @@ The OSS release ships a **MATH-500 evaluator** as the reference implementation; 
 │   └── utils/         # persistent Memory + vLLM KV-cache prompt structuring
 ├── web/               # Next.js chat UI (chat · reasoning tree · live logs)
 ├── server/            # FastAPI bridge — streams the agent to the UI over SSE
-├── scripts/           # smoke test + Playwright capture + demo build pipeline
-├── video/             # Remotion project for the branded demo video
+├── scripts/           # headless-browser smoke test for the UI
 ├── docs/              # demo.mp4 / demo.gif / screenshot.png
 ├── data/math/         # bundled MATH-500 dataset
 ├── results/math500/   # evaluation outputs (JSONL, timestamped)
@@ -287,7 +286,7 @@ Follow along in [Issues](../../issues).
 
 ## 🙏 Thanks
 
-[LangGraph](https://langchain-ai.github.io/langgraph/) · [MATH-500](https://huggingface.co/datasets/HuggingFaceH4/MATH-500) · [Google Gemini](https://ai.google.dev/gemini-api/docs) · [OpenAI](https://platform.openai.com/docs) · [Ollama](https://ollama.com/) · [vLLM](https://docs.vllm.ai/) · [Next.js](https://nextjs.org/) · [React Flow](https://reactflow.dev/) · [Remotion](https://remotion.dev/). Contributors in [AUTHORS.md](AUTHORS.md).
+[LangGraph](https://langchain-ai.github.io/langgraph/) · [MATH-500](https://huggingface.co/datasets/HuggingFaceH4/MATH-500) · [Google Gemini](https://ai.google.dev/gemini-api/docs) · [OpenAI](https://platform.openai.com/docs) · [Ollama](https://ollama.com/) · [vLLM](https://docs.vllm.ai/) · [Next.js](https://nextjs.org/) · [React Flow](https://reactflow.dev/). Contributors in [AUTHORS.md](AUTHORS.md).
 
 ---
 
