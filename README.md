@@ -160,18 +160,18 @@ Results land in `results/math500/math500_eval_YYYYMMDD_HHMMSS.jsonl`. Run the ev
 
 **🎯 85.8% accuracy on MATH-500** (429/500), **+7.2 pp over Self-Refine** — and **54.4%** on MMLU-Pro. Ablations confirm each component pulls its weight: removing memory drops accuracy to 76.8%, removing backtracking to 78.4%.
 
-A second view — answer *quality* judged 0–10 by an independent LLM (vs. the baselines):
+### MATH-500 — Overall Accuracy
 
-| Method | Avg Score | Median | High Quality (≥ 7) | Failures |
-|---|---|---|---|---|
-| Reflexion | 3.93 | 3.0 | 24.2 % | 107 |
-| Self-Refine | 6.56 | 6.0 | 44.6 % | 2 |
-| ReAct | 6.63 | 7.0 | 51.6 % | 3 |
-| **ReTreVal** | **6.92** | **8.0** | **58.0 %** | **0** |
+| Method        | Accuracy |
+|---------------|----------|
+| Zero-Shot CoT | 77.2%    |
+| ReAct         | 73.2%    |
+| ToT           | 77.4%    |
+| LATS          | 77.6%    |
+| Self-Refine   | 78.6%    |
+| **ReTreVal**  | **85.8%** |
 
-ReTreVal is the only method with **zero** complete failures across 500 problems.
-
-> **Reproducibility note.** The bundled `math500_eval.py` reports **exact-match accuracy** (the 85.8% metric — fast, deterministic, no extra API cost). The 0–10 *judged* scores in the table come from the paper's separate LLM-judge harness; see the paper for that protocol.
+> **Reproducibility note.** The bundled `math500_eval.py` reports **exact-match accuracy** (the 85.8% metric — fast, deterministic, no extra API cost).
 
 ---
 
