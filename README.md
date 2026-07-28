@@ -1,4 +1,4 @@
-# 🌳 ReTreVal — Reasoning Tree with Validation
+# 🌳 ReTreVal: Reasoning Tree with Validation and Cross-Problem Memory for Large Language Models
 
 <div align="center">
 
